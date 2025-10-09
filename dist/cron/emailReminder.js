@@ -35,10 +35,12 @@ export function startCronJobs() {
         }
     };
     const ejecutarReporteGerencia = async (hora) => {
-        if (yaFueEjecutado(hora)) {
-            console.log(`⚠️ Cron ya fue ejecutado recientemente para ${hora}, se omite.`);
-            return;
-        }
+        // if (yaFueEjecutado(hora)) {
+        //   console.log(
+        //     `⚠️ Cron ya fue ejecutado recientemente para ${hora}, se omite.`
+        //   );
+        //   return;
+        // }
         try {
             console.log(`⏰ Ejecutando tarea programada (${hora}) - Reporte Gerencia`);
             // 🔹 Datos de ausentes por equipo
@@ -82,7 +84,12 @@ export function startCronJobs() {
     // 📌 Recordatorios normales
     // Ejecutar a las 10:00
     cron.schedule("0 12 * * *", async () => {
-        await ejecutarRecordatorio("12:00");
+        try {
+            await ejecutarRecordatorio("12:00");
+        }
+        catch (err) {
+            console.error(err);
+        }
     });
     // Ejecutar a las 17:00
     // cron.schedule("0 17 * * *", async () => {
@@ -90,12 +97,17 @@ export function startCronJobs() {
     // });
     // Ejecutar a las 20:00
     cron.schedule("0 14 * * *", async () => {
-        await ejecutarReporteGerencia("14:00");
+        try {
+            await ejecutarReporteGerencia("14:00");
+        }
+        catch (err) {
+            console.error(err);
+        }
     });
     //   // ===== MODO PRUEBA =====
     (async () => {
         // console.log("🛠️ Ejecutando recordatorio en modo DEBUG...");
-        //await ejecutarRecordatorio("DEBUG");
+        // await ejecutarRecordatorio("DEBUG");
         // console.log("🛠️ Ejecutando reporte Gerencia ahora en modo DEBUG...");
         // await ejecutarReporteGerencia("DEBUG");
     })();

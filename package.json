@@ -1,6 +1,6 @@
 {
   "name": "servicio-cron",
-  "version": "1.1.15",
+  "version": "1.1.17",
   "type": "module",
   "scripts": {
     "build": "tsc",

@@ -147,6 +147,8 @@ Este archivo explica cómo levantar y mantener el servicio `cron-runner.js` usan
 * 3) utilizar en el servidor process.cwd()
 * const packageJsonPath = path.resolve(process.cwd(), 'package.json'); // <-- aquí
 * let version = '0.0.0';
+* 4) Reemplazar const emailReminderPath = pathToFileURL(path.resolve(process.cwd(), 'servicio-cron', 'cron', cronFileName)).href;
+
 
 ### 1. Entrar al proyecto
 

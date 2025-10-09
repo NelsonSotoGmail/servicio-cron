@@ -9,12 +9,12 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Path absoluto del archivo de entorno
-const envPath = path.resolve(__dirname, '.env.local');
+const envPath = path.resolve(process.cwd(), '.env.local');
 dotenv.config({ path: envPath });
 // --------------------
 // Leer versión de package.json
 // --------------------
-const packageJsonPath = path.resolve(__dirname, 'package.json');
+const packageJsonPath = path.resolve(process.cwd(), 'package.json');
 let version = '0.0.0';
 try {
     const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
@@ -34,9 +34,9 @@ console.log('Versión del servicio:', version);
 // Determinar extensión según entorno
 // --------------------
 const isProd = process.env.NODE_ENV === 'production';
-const cronFileName = isProd ? 'emailReminder.js' : 'emailReminder.ts';
+const cronFileName = isProd ? 'emailReminder.js' : 'emailReminder.js';
 // Construir path absoluto al módulo de cron
-const emailReminderPath = pathToFileURL(path.resolve(__dirname, './cron', cronFileName)).href;
+const emailReminderPath = pathToFileURL(path.resolve(process.cwd(), './cron', cronFileName)).href;
 // --------------------
 // Import dinámico del cron
 // --------------------

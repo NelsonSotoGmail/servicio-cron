@@ -64,7 +64,7 @@ export function startCronJobs() {
 
       // 🔹 Datos de ausentes por equipo
       const datosEquipos = await obtenerCampanaDiaReporteGerencia();
-      console.log("🚀 ~ datosEquipos ~", datosEquipos);
+     // console.log("🚀 ~ datosEquipos ~", datosEquipos);
       const datosUnicos = Array.from(
         new Map(
           datosEquipos.map((e) => [`${e.campana_nombre}-${e.equipo_nombre}`, e])
@@ -106,7 +106,8 @@ export function startCronJobs() {
       // 🔹 Enviar correo con los datos reales
       await sendReporteGerenciaEmail(
         "patricia@2call.cl,romina@2call.cl,asistencia@2call.cl,marco@2call.cl,ana.valderrama@2call.cl,jorge.gomez@2callcenter.com,nelson.soto@kyros.cl,ignacio.fuentes@2call.cl,rita.montenegro@2call.cl,adrian@2call.cl,gonzalo.calderon@2call.cl,margarita@2call.cl,miguelangel@2call.cl,benjamin.arce@kyros.cl",
-        new Date().toISOString().split("T")[0],
+       //"nelson.soto@kyros.cl", 
+       new Date().toISOString().split("T")[0],
         datosUnicos,
         resumenPorcentual, // 👈 ahora sí usa los valores de la BD
         [],
@@ -148,10 +149,11 @@ cron.schedule("0 14 * * *", async () => {
 //   // ===== MODO PRUEBA =====
 (async () => {
   // console.log("🛠️ Ejecutando recordatorio en modo DEBUG...");
-  // await ejecutarRecordatorio("DEBUG");
+   //await ejecutarRecordatorio("DEBUG");
 
   // console.log("🛠️ Ejecutando reporte Gerencia ahora en modo DEBUG...");
-  // await ejecutarReporteGerencia("DEBUG");
+  await ejecutarReporteGerencia("DEBUG");
 })();
 }
 
+ 

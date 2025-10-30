@@ -1,10 +1,11 @@
 {
   "name": "servicio-cron",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' cron-runner.ts"
+
   },
   "dependencies": {
     "date-fns": "^3.3.1",

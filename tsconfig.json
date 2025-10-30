@@ -7,7 +7,6 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "strict": true,
-    "baseUrl": "./",
     "allowJs": false,
     "noEmit": false
   },

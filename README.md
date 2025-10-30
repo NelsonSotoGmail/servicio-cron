@@ -20,7 +20,7 @@ Esto compilará tu proyecto con **TypeScript** y generará la carpeta `.next` (s
 Para mantener un “deploy” o copia limpia, crea una carpeta llamada `B1ALERT`:
 
 ```bash
-mkdir B1ALERT
+mkdir B1ALERTA
 ```
 
 Esto creará la carpeta en el directorio actual.
@@ -32,7 +32,7 @@ Esto creará la carpeta en el directorio actual.
 Copia las carpetas y archivos necesarios para ejecutar el proyecto:
 
 ```bash
-cp -R dist package.json package-lock.json B1ALERT/
+cp -R dist package.json package-lock.json B1ALERTA/
 ```
 
 * `-R` significa recursivo, necesario para copiar carpetas con su contenido.
@@ -46,7 +46,7 @@ cp -R dist package.json package-lock.json B1ALERT/
 Si tienes variables de entorno, copia el archivo `.env.local`:
 
 ```bash
-cp .env.local B1ALERT/
+cp .env.local B1ALERTA/
 ```
 
 Esto asegura que tu proyecto tenga la misma configuración que en desarrollo.
@@ -56,7 +56,7 @@ Esto asegura que tu proyecto tenga la misma configuración que en desarrollo.
 ## 5️⃣ Verificar los archivos copiados
 
 ```bash
-ls B1ALERT
+ls B1ALERTA
 ```
 
 Deberías ver:
@@ -73,7 +73,7 @@ package-lock.json
 ## 8️⃣ Cambiar el nombre a carpeta dejando la versión B1ALERTA V13.
 ## 9️⃣ Copiar todos los archivo a E:\B1BONOS\EnvioReporte\B1ALERTA  
 
-# B1ALERT - Instrucciones de ejecución desarrollo (`npm run start`)
+# B1ALERT - Instrucciones de ejecución DESARROLLO (`npm run start`)
 
 ```json
 {
@@ -83,6 +83,10 @@ package-lock.json
   "scripts": {
     "build": "tsc",
     "start": "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' cron-runner.ts"
+
+    
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/cron-runner.js"
   },
   "dependencies": {
     "date-fns": "^3.3.1",
@@ -103,7 +107,7 @@ package-lock.json
 
 ---
 
-# B1ALERT - Instrucciones de ejecución para ejecutable (`npm run build`)
+# B1ALERT - Instrucciones de ejecución para EJECUTABLE SERVIDOR (`npm run build`)
 
 > Se debe reemplazar `start` a `node dist/cron-runner.js`
 
@@ -147,7 +151,7 @@ Este archivo explica cómo levantar y mantener el servicio `cron-runner.js` usan
 * 3) utilizar en el servidor process.cwd()
 * const packageJsonPath = path.resolve(process.cwd(), 'package.json'); // <-- aquí
 * let version = '0.0.0';
-* 4) Reemplazar const emailReminderPath = pathToFileURL(path.resolve(process.cwd(), 'servicio-cron', 'cron', cronFileName)).href;
+* 4) Revisar si esta ,  Reemplazar const emailReminderPath = pathToFileURL(path.resolve(__dirname, './cron', cronFileName)).href;
 
 
 ### 1. Entrar al proyecto

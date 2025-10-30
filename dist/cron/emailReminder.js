@@ -107,7 +107,7 @@ export function startCronJobs() {
     //   // ===== MODO PRUEBA =====
     (async () => {
         // console.log("🛠️ Ejecutando recordatorio en modo DEBUG...");
-        // await ejecutarRecordatorio("DEBUG");
+        //await ejecutarRecordatorio("DEBUG");
         // console.log("🛠️ Ejecutando reporte Gerencia ahora en modo DEBUG...");
         // await ejecutarReporteGerencia("DEBUG");
     })();

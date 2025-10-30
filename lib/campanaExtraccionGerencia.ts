@@ -16,8 +16,8 @@ export type CampanaDiaConEmails = {
 
 export async function obtenerCampanaDiaReporteGerencia(): Promise<CampanaDiaConEmails[]> {
   const query = `
-   WITH campanas_activas AS (
-  SELECT  DISTINCT ON (c.id, t.id, e.id)
+  WITH campanas_activas AS (
+  SELECT DISTINCT ON (c.id, t.id, e.id)
     c.id AS campana_id,
     c.nombre AS campana_nombre,
     t.id AS turno_id,
@@ -45,7 +45,7 @@ equipo_conteo AS (
   GROUP BY id_equipo
 ),
 asistentes_hoy AS (
-  SELECT ec.id_equipo, COUNT(ae.id) AS cantidad_asistentes
+  SELECT ec.id_equipo, COUNT(DISTINCT ae.empleado_id) AS cantidad_asistentes
   FROM asistencias_empleados ae
   JOIN equipo_colaborador ec ON ec.id_empleado = ae.empleado_id
   WHERE ae.fecha_creacion::date = NOW()::date
@@ -62,11 +62,12 @@ SELECT
   NOW()::date AS fecha,
   COALESCE(ec.cantidad_equipo, 0) AS cantidad_equipo,
   COALESCE(ah.cantidad_asistentes, 0) AS cantidad_asistentes,
-  COALESCE(ec.cantidad_equipo, 0) - COALESCE(ah.cantidad_asistentes, 0) AS cantidad_ausentes
+  GREATEST(COALESCE(ec.cantidad_equipo, 0) - COALESCE(ah.cantidad_asistentes, 0), 0) AS cantidad_ausentes
 FROM campanas_activas ca
 LEFT JOIN equipo_conteo ec ON ec.id_equipo = ca.equipo_id
 LEFT JOIN asistentes_hoy ah ON ah.id_equipo = ca.equipo_id
 ORDER BY ca.campana_nombre, ca.turno_nombre, ca.equipo_nombre;
+
 
   `;
 
@@ -93,40 +94,50 @@ export type ResumenPorcentualGeneral = {
 
 export async function obtenerCampanaDiaReporteGerenciaPorcentualGeneral(): Promise<ResumenPorcentualGeneral> {
   const query = `
-    WITH datos AS (
-  SELECT 
-    ec.id_equipo,
-    COUNT(ec.id_empleado) AS cantidad_equipo,
-    SUM(CASE WHEN ae.estado = 'Asistente' THEN 1 ELSE 0 END) AS cantidad_asistentes,
-    SUM(CASE WHEN ae.estado = 'Licencia' THEN 1 ELSE 0 END) AS cantidad_licencias,
-    SUM(CASE WHEN ae.estado = 'Libre' THEN 1 ELSE 0 END) AS cantidad_libres,
-    SUM(CASE WHEN ae.estado = 'Vacaciones' THEN 1 ELSE 0 END) AS cantidad_vacaciones,
-    SUM(CASE WHEN ae.estado = 'Permiso' THEN 1 ELSE 0 END) AS cantidad_permisos,
-    SUM(CASE WHEN ae.estado = 'Ausente sin Justificación' THEN 1 ELSE 0 END) AS cantidad_ausentes_sin_justificacion,
-    SUM(CASE WHEN ae.estado = 'Otro' THEN 1 ELSE 0 END) AS cantidad_otros
-  FROM equipo_colaborador ec
-  LEFT JOIN asistencias_empleados ae 
-    ON ae.empleado_id = ec.id_empleado
-   AND ae.asistencia_id IN (
-       SELECT id FROM asistencias WHERE fecha::date = NOW()::date
-   )
-  GROUP BY ec.id_equipo
-)
-SELECT
-  ROUND(100.0 * SUM(cantidad_equipo - cantidad_asistentes) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_total_ausencia,
-  ROUND(100.0 * SUM(cantidad_asistentes) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_asistentes,
-  ROUND(100.0 * SUM(cantidad_licencias) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_licencias,
-  ROUND(100.0 * SUM(cantidad_libres) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_libres,
-  ROUND(100.0 * SUM(cantidad_vacaciones) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_vacaciones,
-  ROUND(100.0 * SUM(cantidad_permisos) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_permisos,
-  ROUND(100.0 * SUM(cantidad_ausentes_sin_justificacion) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_ausentes_sin_justificacion,
-  ROUND(100.0 * SUM(cantidad_otros) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_otros
-FROM datos;
+   WITH asistencia_unica AS (
+      SELECT DISTINCT ON (ae.empleado_id) 
+             ae.empleado_id, 
+             ae.estado
+      FROM asistencias_empleados ae
+      INNER JOIN asistencias a 
+              ON ae.asistencia_id = a.id
+      WHERE a.fecha::date = NOW()::date
+      ORDER BY ae.empleado_id, ae.id
+    ),
+    -- Segundo paso: calcular totales por equipo
+    datos AS (
+      SELECT 
+        ec.id_equipo,
+        COUNT(ec.id_empleado) AS cantidad_equipo,
+        SUM(CASE WHEN au.estado = 'Asistente' THEN 1 ELSE 0 END) AS cantidad_asistentes,
+        SUM(CASE WHEN au.estado = 'Licencia' THEN 1 ELSE 0 END) AS cantidad_licencias,
+        SUM(CASE WHEN au.estado = 'Libre' THEN 1 ELSE 0 END) AS cantidad_libres,
+        SUM(CASE WHEN au.estado = 'Vacaciones' THEN 1 ELSE 0 END) AS cantidad_vacaciones,
+        SUM(CASE WHEN au.estado = 'Permiso' THEN 1 ELSE 0 END) AS cantidad_permisos,
+        SUM(CASE WHEN au.estado = 'Ausente sin Justificación' THEN 1 ELSE 0 END) AS cantidad_ausentes_sin_justificacion,
+        SUM(CASE WHEN au.estado = 'Otro' THEN 1 ELSE 0 END) AS cantidad_otros
+      FROM equipo_colaborador ec
+      LEFT JOIN asistencia_unica au
+        ON au.empleado_id = ec.id_empleado
+      GROUP BY ec.id_equipo
+    )
+    -- Tercer paso: calcular porcentajes generales
+    SELECT
+      ROUND(100.0 * SUM(cantidad_equipo - cantidad_asistentes) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_total_ausencia,
+      ROUND(100.0 * SUM(cantidad_asistentes) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_asistentes,
+      ROUND(100.0 * SUM(cantidad_licencias) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_licencias,
+      ROUND(100.0 * SUM(cantidad_libres) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_libres,
+      ROUND(100.0 * SUM(cantidad_vacaciones) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_vacaciones,
+      ROUND(100.0 * SUM(cantidad_permisos) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_permisos,
+      ROUND(100.0 * SUM(cantidad_ausentes_sin_justificacion) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_ausentes_sin_justificacion,
+      ROUND(100.0 * SUM(cantidad_otros) / NULLIF(SUM(cantidad_equipo),0), 2) AS porcentaje_otros
+    FROM datos;
 
   `;
 
   try {
     const { rows } = await pool.query(query);
+    console.log("🚀 ~ obtenerCampanaDiaReporteGerenciaPorcentualGeneral ~ rows:", rows)
     return rows[0];
   } catch (error) {
     console.error("Database Error:", error);
